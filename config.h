@@ -25,12 +25,7 @@ class config {
 		std::string mysql_host;
 		std::string mysql_username;
 		std::string mysql_password;
-
-		// Site communication
-		std::string site_host;
 		std::string site_password;
-		std::string site_path;
-
 		std::string report_password;
 
 		config();

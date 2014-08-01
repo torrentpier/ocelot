@@ -31,7 +31,7 @@ std::string response(const std::string &body, bool gzip, bool html) {
 
 std::string response_head(bool gzip, bool html) {
 	const std::string content_type = html ? "text/html" : "text/plain";
-	std::string head = "HTTP/1.1 200 OK\r\nServer: Ocelot 1.0";
+	std::string head = "HTTP/1.1 200 OK\r\nServer: AlexFilm.TV Ocelot 1.0 ";
 	head += "\r\nContent-Type: " + content_type;
 	if (gzip) {
 		head += "\r\nContent-Encoding: gzip";

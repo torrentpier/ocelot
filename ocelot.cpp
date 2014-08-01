@@ -4,7 +4,6 @@
 #include "worker.h"
 #include "events.h"
 #include "schedule.h"
-#include "site_comm.h"
 
 static connection_mother *mother;
 static worker *work;
@@ -41,9 +40,6 @@ int main(int argc, char **argv) {
 	}
 	db.verbose_flush = verbose;
 
-	site_comm sc(conf);
-	sc.verbose_flush = verbose;
-
 	std::vector<std::string> whitelist;
 	db.load_whitelist(whitelist);
 	std::cout << "Loaded " << whitelist.size() << " clients into the whitelist" << std::endl;
@@ -59,7 +55,6 @@ int main(int argc, char **argv) {
 	db.load_torrents(torrents_list);
 	std::cout << "Loaded " << torrents_list.size() << " torrents" << std::endl;
 
-	db.load_tokens(torrents_list);
 
 	stats.open_connections = 0;
 	stats.opened_connections = 0;
@@ -74,10 +69,10 @@ int main(int argc, char **argv) {
 	stats.start_time = time(NULL);
 
 	// Create worker object, which handles announces and scrapes and all that jazz
-	work = new worker(torrents_list, users_list, whitelist, &conf, &db, &sc);
+	work = new worker(torrents_list, users_list, whitelist, &conf, &db);
 
 	// Create connection mother, which binds to its socket and handles the event stuff
-	mother = new connection_mother(work, &conf, &db, &sc);
+	mother = new connection_mother(work, &conf, &db);
 
 	return 0;
 }

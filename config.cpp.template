@@ -21,12 +21,7 @@ config::config() {
 	mysql_host = "127.0.0.1:3306";
 	mysql_username = "***";
 	mysql_password = "***";
-
-	// Site communication
-	site_host = "localhost";
-	site_password = "********************************"; // MUST BE 32 CHARS
-	site_path = ""; // If the site is not running under the domain root
-
+	site_password = "**********"; // MUST BE 10 CHARS
 	// Key to use for /report?get=stats and /report?get=user&key=<passkey> requests
-	report_password = "********************************"; // MUST BE 32 CHARS
+	report_password = "**********"; // MUST BE 32 CHARS
 }

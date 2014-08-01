@@ -6,7 +6,7 @@
 #include "schedule.h"
 
 
-schedule::schedule(connection_mother * mother_obj, worker* worker_obj, config* conf_obj, mysql * db_obj, site_comm * sc_obj) : mother(mother_obj), work(worker_obj), conf(conf_obj), db(db_obj), sc(sc_obj) {
+schedule::schedule(connection_mother * mother_obj, worker* worker_obj, config* conf_obj, mysql * db_obj) : mother(mother_obj), work(worker_obj), conf(conf_obj), db(db_obj) {
 	counter = 0;
 	last_opened_connections = 0;
 
@@ -21,7 +21,7 @@ void schedule::handle(ev::timer &watcher, int events_flags) {
 		<< stats.connection_rate << "/s" << std::endl;
 	}
 
-	if (work->get_status() == CLOSING && db->all_clear() && sc->all_clear()) {
+	if (work->get_status() == CLOSING && db->all_clear()) {
 		std::cout << "all clear, shutting down" << std::endl;
 		exit(0);
 	}
@@ -29,7 +29,7 @@ void schedule::handle(ev::timer &watcher, int events_flags) {
 	last_opened_connections = stats.opened_connections;
 
 	db->flush();
-	sc->flush_tokens();
+
 
 	time_t cur_time = time(NULL);
 
