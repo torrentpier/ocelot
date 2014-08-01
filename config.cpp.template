@@ -23,5 +23,5 @@ config::config() {
 	mysql_password = "***";
 	site_password = "**********"; // MUST BE 10 CHARS
 	// Key to use for /report?get=stats and /report?get=user&key=<passkey> requests
-	report_password = "**********"; // MUST BE 32 CHARS
+	report_password = "**********"; // MUST BE 10 CHARS
 }
