@@ -1,0 +1,73 @@
+Date:   Thu Jan 16
+
+    Get client IP from the x-forwarded-for header if it is provided
+
+Date:   Thu Jan 16
+
+    Add setting for maximum request size
+
+Date:   Thu Dec 19
+
+    Read/write full requests even if they are
+    split into several recv/send calls
+
+Date:	Tue Dec 5
+
+    Remove most of the dependencies on boost and move all thread-related
+    calls to the STL components provided in C++11.
+
+Date:   Tue Jun 4
+
+    Update the db's torrents table when the peer reaper
+    deletes the last peer on a torrent
+
+Date:   Tue Jun 4
+
+    Collect some stats and add a method that
+    prints them in a way that's easy to process
+
+Date:   Sun Jun 3
+
+    Create a function for adding peers
+    Make use of the peer iterator for faster deletions
+    Fix a potential problem where a deleted pointer was being accessed
+
+Date:   Sun Jun 2
+
+    Separate the sections responsible for output to make it easier to
+    change http headers if needed
+
+Date:   Tue Mar 19 19:20:21 2013
+    
+    Add --with-tcmalloc option to the configure script to enable Google's
+    high-performance multi-threaded malloc() implementation
+
+Date:   Wed Feb 6 05:26:58 2013
+
+    Send special data to search engine crawlers (and other odd clients) in an
+    attempt to prevent indexing of announce URLs
+
+Date:   Sat Feb 2 18:24:19 2013
+
+    Use a lighter query to update peer records in xbt_files_users if peer data
+    has not changed since its previous announcement
+
+Date:   Thu Jan 31
+
+    Expire multiple tokens in a single request to the web server
+
+Date:   Sat Nov 17
+
+    Print warning instead of error if someone submits an IPv6 or otherwise
+    invalid address
+
+Date:   Sun Oct 7
+
+    Make flush queries slightly less spammy by moving them to the functions
+    that invoke flush threads. This makes Ocelot print all queue lengths every
+    <schedule_interval> seconds. It also fixes the problem where two threads
+    are writing to stdout at the same time
+
+Date:   Fri Oct 5
+
+    Put primitive types at the beginning of the peer and torrent structs
