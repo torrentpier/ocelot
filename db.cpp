@@ -151,7 +151,7 @@ bool mysql::all_clear() {
 void mysql::flush() {
 	flush_users();
 	flush_torrents();
-	flush_snatches();
+//	flush_snatches();
 	flush_peers();
 }
 
