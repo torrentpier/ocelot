@@ -384,7 +384,9 @@ std::string worker::announce(torrent &tor, user_ptr &u, params_type &params, par
 			if (uploaded_change || downloaded_change) {
 				bonus = uploaded_change * bonus / 100;
 				std::stringstream record;
-				record << '(' << userid << ',' << uploaded_change << ',' << downloaded_change << ',' << bonus << ')';
+				if(tor.poster_id==userid)
+				{record << '(' << userid << ',' << uploaded_change << ',' << downloaded_change << ',' << bonus << ',' << uploaded_change << ')';}
+				else{record << '(' << userid << ',' << uploaded_change << ',' << downloaded_change << ',' << bonus << ',' << 0 << ')';}
 				std::string record_str = record.str();
 				db->record_user(record_str);
 			}

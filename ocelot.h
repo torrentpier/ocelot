@@ -34,6 +34,7 @@ enum freetype { NORMAL, FREE, NEUTRAL };
 
 typedef struct {
 	int id;
+	int poster_id;
 	int64_t balance;
 	int completed;
 	freetype free_torrent;
