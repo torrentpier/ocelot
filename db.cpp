@@ -52,7 +52,7 @@ void mysql::clear_peer_data() {
 }
 
 void mysql::load_torrents(torrent_list &torrents) {
-	mysqlpp::Query query = conn.query("SELECT topic_id, info_hash, tor_type, complete_count FROM bb_bt_torrents ORDER BY topic_id;");
+	mysqlpp::Query query = conn.query("SELECT topic_id, info_hash, tor_type, complete_count, poster_id FROM bb_bt_torrents ORDER BY topic_id;");
 	if (mysqlpp::StoreQueryResult res = query.store()) {
 		size_t num_rows = res.num_rows();
 		for (size_t i = 0; i < num_rows; i++) {
@@ -70,6 +70,7 @@ void mysql::load_torrents(torrent_list &torrents) {
 			}
 			t.balance = 0;
 			t.completed = res[i][3];
+			t.poster_id = res[i][4];
 			t.last_selected_seeder = "";
 			torrents[info_hash] = t;
 		}
@@ -164,8 +165,9 @@ void mysql::flush_users() {
 	if (update_user_buffer == "") {
 		return;
 	}
-	sql = "INSERT INTO bb_bt_users (user_id, up_today, down_today, up_bonus_today) VALUES " + update_user_buffer +
-		" ON DUPLICATE KEY UPDATE up_today = up_today + VALUES(up_today), down_today = down_today + VALUES(down_today), up_bonus_today=VALUES(up_bonus_today), u_down_total = u_down_total + VALUES(down_today), u_up_total=u_up_total+VALUES(up_today), u_up_bonus = VALUES(up_bonus_today)";
+	sql = "INSERT INTO bb_bt_users (user_id, up_today, down_today, up_bonus_today, up_release_today) VALUES " + update_user_buffer +
+		" ON DUPLICATE KEY UPDATE up_today = up_today + VALUES(up_today), down_today = down_today + VALUES(down_today), up_bonus_today=VALUES(up_bonus_today), "
+               +"up_release_today=VALUES(up_release_today), u_down_total = u_down_total + VALUES(down_today), u_up_total=u_up_total+VALUES(up_today), u_up_bonus = VALUES(up_bonus_today), u_up_release=VALUES(up_release_today)";
 	user_queue.push(sql);
 	update_user_buffer.clear();
 	if (u_active == false) {
