@@ -12,6 +12,8 @@
 #include <mutex>
 #include <thread>
 
+#include <boost/functional/hash.hpp>
+
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
@@ -20,13 +22,12 @@
 #include "db.h"
 #include "worker.h"
 #include "misc_functions.h"
-#include "site_comm.h"
 #include "response.h"
 #include "report.h"
 #include "user.h"
 
 //---------- Worker - does stuff with input
-worker::worker(torrent_list &torrents, user_list &users, std::vector<std::string> &_whitelist, config * conf_obj, mysql * db_obj, site_comm * sc) : torrents_list(torrents), users_list(users), whitelist(_whitelist), conf(conf_obj), db(db_obj), s_comm(sc)
+worker::worker(torrent_list &torrents, user_list &users, std::vector<std::string> &_whitelist, config * conf_obj, mysql * db_obj) : torrents_list(torrents), users_list(users), whitelist(_whitelist), conf(conf_obj), db(db_obj)
 {
 	status = OPEN;
 }
@@ -46,7 +47,7 @@ std::string worker::work(std::string &input, std::string &ip) {
 	unsigned int input_length = input.length();
 
 	//---------- Parse request - ugly but fast. Using substr exploded.
-	if (input_length < 60) { // Way too short to be anything useful
+	if (input_length < 38) { // Way too short to be anything useful
 		return error("GET string too short");
 	}
 
@@ -54,16 +55,16 @@ std::string worker::work(std::string &input, std::string &ip) {
 
 	// Get the passkey
 	std::string passkey;
-	passkey.reserve(32);
-	if (input[37] != '/') {
+	passkey.reserve(10);
+	if (input[15] != '/') {
 		return error("Malformed announce");
 	}
 
-	for (; pos < 37; pos++) {
+	for (; pos < 15; pos++) {
 		passkey.push_back(input[pos]);
 	}
 
-	pos = 38;
+	pos = 16;
 
 	// Get the action
 	enum action_t {
@@ -99,9 +100,6 @@ std::string worker::work(std::string &input, std::string &ip) {
 		return response("Nothing to see here", false, true);
 	}
 
-	if (status != OPEN && action != UPDATE) {
-		return error("The tracker is temporarily unavailable.");
-	}
 
 	if (action == INVALID) {
 		return error("Invalid action");
@@ -231,17 +229,19 @@ std::string worker::announce(torrent &tor, user_ptr &u, params_type &params, par
 	int64_t uploaded = std::max((int64_t)0, strtolonglong(params["uploaded"]));
 	int64_t downloaded = std::max((int64_t)0, strtolonglong(params["downloaded"]));
 	int64_t corrupt = std::max((int64_t)0, strtolonglong(params["corrupt"]));
-
+	
+	int64_t bonus = 0;
 	int snatched = 0; // This is the value that gets sent to the database on a snatch
 	int active = 1; // This is the value that marks a peer as active/inactive in the database
 	bool inserted = false; // If we insert the peer as opposed to update
 	bool update_torrent = false; // Whether or not we should update the torrent in the DB
 	bool completed_torrent = false; // Whether or not the current announcement is a snatch
 	bool stopped_torrent = false; // Was the torrent just stopped?
-	bool expire_token = false; // Whether or not to expire a token after torrent completion
 	bool peer_changed = false; // Whether or not the peer is new or has changed since the last announcement
 	bool invalid_ip = false;
 	bool inc_l = false, inc_s = false, dec_l = false, dec_s = false;
+
+	std::string info_hash_decoded = hex_decode(params["info_hash"]);
 
 	params_type::const_iterator peer_id_iterator = params.find("peer_id");
 	if (peer_id_iterator == params.end()) {
@@ -285,6 +285,7 @@ std::string worker::announce(torrent &tor, user_ptr &u, params_type &params, par
 			inc_l = true;
 		}
 	} else if (completed_torrent) {
+		bonus = 0;
 		peer_it = tor.leechers.find(peer_id);
 		if (peer_it == tor.leechers.end()) {
 			peer_it = tor.seeders.find(peer_id);
@@ -373,31 +374,23 @@ std::string worker::announce(torrent &tor, user_ptr &u, params_type &params, par
 				upspeed = uploaded_change / (cur_time - p->last_announced);
 				downspeed = downloaded_change / (cur_time - p->last_announced);
 			}
-			std::set<int>::iterator sit = tor.tokened_users.find(userid);
 			if (tor.free_torrent == NEUTRAL) {
 				downloaded_change = 0;
 				uploaded_change = 0;
-			} else if (tor.free_torrent == FREE || sit != tor.tokened_users.end()) {
-				if (sit != tor.tokened_users.end()) {
-					expire_token = true;
-					std::stringstream record;
-					record << '(' << userid << ',' << tor.id << ',' << downloaded_change << ')';
-					std::string record_str = record.str();
-					db->record_token(record_str);
-				}
+			} else if (tor.free_torrent == FREE) {
 				downloaded_change = 0;
 			}
 
 			if (uploaded_change || downloaded_change) {
+				bonus = uploaded_change * bonus / 100;
 				std::stringstream record;
-				record << '(' << userid << ',' << uploaded_change << ',' << downloaded_change << ')';
+				record << '(' << userid << ',' << uploaded_change << ',' << downloaded_change << ',' << bonus << ')';
 				std::string record_str = record.str();
 				db->record_user(record_str);
 			}
 		}
 	}
 	p->left = left;
-
 	params_type::const_iterator param_ip = params.find("ip");
 	if (param_ip != params.end()) {
 		ip = param_ip->second;
@@ -450,23 +443,25 @@ std::string worker::announce(torrent &tor, user_ptr &u, params_type &params, par
 	// Update the peer
 	p->last_announced = cur_time;
 	p->visible = peer_is_visible(u, p);
-
+	bool seeder = left == 0;
+	boost::hash<std::string> string_hash;
+	std::size_t peer_hash = string_hash(peer_id+info_hash_decoded+inttostr(port)+ip);
 	// Add peer data to the database
 	std::stringstream record;
+	std::string record_ip;
+	if (u->is_protected()) {
+		record_ip = "";
+	} else {
+		record_ip = ip;
+	}
 	if (peer_changed) {
-		record << '(' << userid << ',' << tor.id << ',' << active << ',' << uploaded << ',' << downloaded << ',' << upspeed << ',' << downspeed << ',' << left << ',' << corrupt << ',' << (cur_time - p->first_announced) << ',' << p->announces << ',';
+		record << '(' << userid << ',' << tor.id << ','  << uploaded << ',' << downloaded << ',' << upspeed << ',' << downspeed << ',' << left << ',' << seeder << ',' << port << ',' << peer_hash << ',';
 		std::string record_str = record.str();
-		std::string record_ip;
-		if (u->is_protected()) {
-			record_ip = "";
-		} else {
-			record_ip = ip;
-		}
 		db->record_peer(record_str, record_ip, peer_id, headers["user-agent"]);
 	} else {
-		record << '(' << tor.id << ',' << (cur_time - p->first_announced) << ',' << p->announces << ',';
+		record << '(' << tor.id << ',' << peer_hash << ',' << userid << ',' << port << ',';
 		std::string record_str = record.str();
-		db->record_peer(record_str, peer_id);
+		db->record_peer(record_str, record_ip, peer_id);
 	}
 
 	// Select peers!
@@ -509,10 +504,6 @@ std::string worker::announce(torrent &tor, user_ptr &u, params_type &params, par
 			peer_it = insert.first;
 			p = &peer_it->second;
 			dec_l = inc_s = true;
-		}
-		if (expire_token) {
-			s_comm->expire_token(tor.id, userid);
-			tor.tokened_users.erase(userid);
 		}
 	} else if (!u->can_leech() && left > 0) {
 		numwant = 0;
@@ -642,7 +633,7 @@ std::string worker::announce(torrent &tor, user_ptr &u, params_type &params, par
 		tor.last_flushed = cur_time;
 
 		std::stringstream record;
-		record << '(' << tor.id << ',' << tor.seeders.size() << ',' << tor.leechers.size() << ',' << snatched << ',' << tor.balance << ')';
+		record << '(' << tor.id << ',' << tor.seeders.size() << ',' << tor.leechers.size() << ',' << snatched << ')';
 		std::string record_str = record.str();
 		db->record_torrent(record_str);
 	}
@@ -776,7 +767,7 @@ std::string worker::update(params_type &params) {
 		freetype fl;
 		if (params["freetorrent"] == "0") {
 			fl = NORMAL;
-		} else if (params["freetorrent"] == "1") {
+		} else if (params["freetorrent"] == "2") {
 			fl = FREE;
 		} else {
 			fl = NEUTRAL;
@@ -791,25 +782,7 @@ std::string worker::update(params_type &params) {
 				std::cout << "Failed to find torrent " << info_hash << " to FL " << fl << std::endl;
 			}
 		}
-	} else if (params["action"] == "add_token") {
-		std::string info_hash = hex_decode(params["info_hash"]);
-		int userid = atoi(params["userid"].c_str());
-		auto torrent_it = torrents_list.find(info_hash);
-		if (torrent_it != torrents_list.end()) {
-			torrent_it->second.tokened_users.insert(userid);
-		} else {
-			std::cout << "Failed to find torrent to add a token for user " << userid << std::endl;
-		}
-	} else if (params["action"] == "remove_token") {
-		std::string info_hash = hex_decode(params["info_hash"]);
-		int userid = atoi(params["userid"].c_str());
-		auto torrent_it = torrents_list.find(info_hash);
-		if (torrent_it != torrents_list.end()) {
-			torrent_it->second.tokened_users.erase(userid);
-		} else {
-			std::cout << "Failed to find torrent " << info_hash << " to remove token for user " << userid << std::endl;
-		}
-	} else if (params["action"] == "delete_torrent") {
+	}  else if (params["action"] == "delete_torrent") {
 		std::string info_hash = params["info_hash"];
 		info_hash = hex_decode(info_hash);
 		int reason = -1;
@@ -846,7 +819,7 @@ std::string worker::update(params_type &params) {
 		unsigned int userid = strtolong(params["id"]);
 		auto u = users_list.find(passkey);
 		if (u == users_list.end()) {
-			bool protect_ip = params["visible"] == "0";
+			bool protect_ip = params["visible"] == "1";
 			user_ptr u(new user(userid, true, protect_ip));
 			users_list.insert(std::pair<std::string, user_ptr>(passkey, u));
 			std::cout << "Added user " << passkey << " with id " << userid << std::endl;
@@ -861,10 +834,10 @@ std::string worker::update(params_type &params) {
 			users_list.erase(u);
 		}
 	} else if (params["action"] == "remove_users") {
-		// Each passkey is exactly 32 characters long.
+		// Each passkey is exactly 10 characters long.
 		std::string passkeys = params["passkeys"];
-		for (unsigned int pos = 0; pos < passkeys.length(); pos += 32) {
-			std::string passkey = passkeys.substr(pos, 32);
+		for (unsigned int pos = 0; pos < passkeys.length(); pos += 10) {
+			std::string passkey = passkeys.substr(pos, 10);
 			auto u = users_list.find(passkey);
 			if (u != users_list.end()) {
 				std::cout << "Removed user " << passkey << std::endl;
@@ -919,7 +892,8 @@ std::string worker::update(params_type &params) {
 		std::cout << "Edited announce interval to " << interval << std::endl;
 	} else if (params["action"] == "info_torrent") {
 		std::string info_hash_hex = params["info_hash"];
-		std::string info_hash = hex_decode(info_hash_hex);
+		//std::string info_hash = hex_decode(info_hash_hex);
+		std::string info_hash = params["info_hash"];
 		std::cout << "Info for torrent '" << info_hash_hex << "'" << std::endl;
 		auto torrent_it = torrents_list.find(info_hash);
 		if (torrent_it != torrents_list.end()) {
@@ -989,7 +963,7 @@ void worker::reap_peers() {
 		}
 		if (reaped_this && t->second.seeders.empty() && t->second.leechers.empty()) {
 			std::stringstream record;
-			record << '(' << t->second.id << ",0,0,0," << t->second.balance << ')';
+			record << '(' << t->second.id << ",0,0,0" << ')';
 			std::string record_str = record.str();
 			db->record_torrent(record_str);
 			cleared_torrents++;
@@ -1030,69 +1004,6 @@ std::string worker::get_del_reason(int code)
 			break;
 		case TRUMP:
 			return "Trump";
-			break;
-		case BAD_FILE_NAMES:
-			return "Bad File Names";
-			break;
-		case BAD_FOLDER_NAMES:
-			return "Bad Folder Names";
-			break;
-		case BAD_TAGS:
-			return "Bad Tags";
-			break;
-		case BAD_FORMAT:
-			return "Disallowed Format";
-			break;
-		case DISCS_MISSING:
-			return "Discs Missing";
-			break;
-		case DISCOGRAPHY:
-			return "Discography";
-			break;
-		case EDITED_LOG:
-			return "Edited Log";
-			break;
-		case INACCURATE_BITRATE:
-			return "Inaccurate Bitrate";
-			break;
-		case LOW_BITRATE:
-			return "Low Bitrate";
-			break;
-		case MUTT_RIP:
-			return "Mutt Rip";
-			break;
-		case BAD_SOURCE:
-			return "Disallowed Source";
-			break;
-		case ENCODE_ERRORS:
-			return "Encode Errors";
-			break;
-		case BANNED:
-			return "Specifically Banned";
-			break;
-		case TRACKS_MISSING:
-			return "Tracks Missing";
-			break;
-		case TRANSCODE:
-			return "Transcode";
-			break;
-		case CASSETTE:
-			return "Unapproved Cassette";
-			break;
-		case UNSPLIT_ALBUM:
-			return "Unsplit Album";
-			break;
-		case USER_COMPILATION:
-			return "User Compilation";
-			break;
-		case WRONG_FORMAT:
-			return "Wrong Format";
-			break;
-		case WRONG_MEDIA:
-			return "Wrong Media";
-			break;
-		case AUDIENCE:
-			return "Audience Recording";
 			break;
 		default:
 			return "";

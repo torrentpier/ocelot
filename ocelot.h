@@ -41,33 +41,11 @@ typedef struct {
 	peer_list seeders;
 	peer_list leechers;
 	std::string last_selected_seeder;
-	std::set<int> tokened_users;
 } torrent;
 
 enum {
 	DUPE, // 0
-	TRUMP, // 1
-	BAD_FILE_NAMES, // 2
-	BAD_FOLDER_NAMES, // 3
-	BAD_TAGS, // 4
-	BAD_FORMAT, // 5
-	DISCS_MISSING, // 6
-	DISCOGRAPHY,// 7
-	EDITED_LOG,// 8
-	INACCURATE_BITRATE, // 9
-	LOW_BITRATE, // 10
-	MUTT_RIP,// 11
-	BAD_SOURCE,// 12
-	ENCODE_ERRORS,// 13
-	BANNED, // 14
-	TRACKS_MISSING,// 15
-	TRANSCODE, // 16
-	CASSETTE, // 17
-	UNSPLIT_ALBUM, // 18
-	USER_COMPILATION, // 19
-	WRONG_FORMAT, // 20
-	WRONG_MEDIA, // 21
-	AUDIENCE // 22
+	TRUMP // 1
 };
 
 typedef struct {

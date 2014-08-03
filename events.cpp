@@ -14,7 +14,7 @@
 
 //---------- Connection mother - spawns middlemen and lets them deal with the connection
 
-connection_mother::connection_mother(worker * worker_obj, config * config_obj, mysql * db_obj, site_comm * sc_obj) : work(worker_obj), conf(config_obj), db(db_obj), sc(sc_obj) {
+connection_mother::connection_mother(worker * worker_obj, config * config_obj, mysql * db_obj) : work(worker_obj), conf(config_obj), db(db_obj) {
 	memset(&address, 0, sizeof(address));
 	addr_len = sizeof(address);
 
@@ -58,7 +58,7 @@ connection_mother::connection_mother(worker * worker_obj, config * config_obj, m
 	}
 
 	// Create libev timer
-	schedule timer(this, worker_obj, conf, db, sc);
+	schedule timer(this, worker_obj, conf, db);
 
 	schedule_event.set<schedule, &schedule::handle>(&timer);
 	schedule_event.set(conf->schedule_interval, conf->schedule_interval); // After interval, every interval
