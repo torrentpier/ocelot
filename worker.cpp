@@ -486,7 +486,9 @@ std::string worker::announce(torrent &tor, user_ptr &u, params_type &params, par
 		snatched = 1;
 		update_torrent = true;
 		tor.completed++;
-
+//Nobody needs to record snatch in torrenpier
+//or maybe we can change this later 
+/*
 		std::stringstream record;
 		std::string record_ip;
 		if (u->is_protected()) {
@@ -497,6 +499,7 @@ std::string worker::announce(torrent &tor, user_ptr &u, params_type &params, par
 		record << '(' << userid << ',' << tor.id << ',' << cur_time;
 		std::string record_str = record.str();
 		db->record_snatch(record_str, record_ip);
+*/
 
 		// User is a seeder now!
 		if (!inserted) {
