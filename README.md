@@ -6,8 +6,5 @@ Ocelot for torrentpier
 
 Работоспособность проверена на Debian 7 
 
-Инструкция по сборке: https://github.com/WhatCD/Gazelle/wiki/Gazelle-installation-on-Ubuntu-14.04 
-На шаге Configure, Compile, Install следует указывать (для Debian 7 - 7.1) 
-> ./configure --with-mysql-lib=/usr/lib/ --with-ev-lib=/usr/lib/ 
-
+Инструкция по сборке: http://torrentpier.me/threads/Сборка-ocelot-под-debian-7-1.26078/ 
 
