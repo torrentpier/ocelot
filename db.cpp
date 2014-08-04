@@ -233,13 +233,14 @@ void mysql::flush_peers() {
 	if (update_light_peer_buffer == "" && update_heavy_peer_buffer == "") {
 		return;
 	}
-
+//Seems sql_log_bin = 0 is default value, so no need to use Super privileges
+/*
 	if (qsize == 0) {
 		sql = "SET session sql_log_bin = 0";
 		peer_queue.push(sql);
 		sql.clear();
 	}
-
+*/
 	if (update_heavy_peer_buffer != "") {
 		// Because xfu inserts are slow and ram is not infinite we need to
 		// limit this queue's size

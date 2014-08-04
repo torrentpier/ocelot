@@ -41,8 +41,8 @@ int main(int argc, char **argv) {
 	db.verbose_flush = verbose;
 
 	std::vector<std::string> whitelist;
-	db.load_whitelist(whitelist);
-	std::cout << "Loaded " << whitelist.size() << " clients into the whitelist" << std::endl;
+	//db.load_whitelist(whitelist);
+	//std::cout << "Loaded " << whitelist.size() << " clients into the whitelist" << std::endl;
 	if (whitelist.size() == 0) {
 		std::cout << "Assuming no whitelist desired, disabling" << std::endl;
 	}
