@@ -34,7 +34,7 @@ class worker {
 	public:
 		worker(torrent_list &torrents, user_list &users, std::vector<std::string> &_whitelist, config * conf_obj, mysql * db_obj);
 		std::string work(std::string &input, std::string &ip);
-		std::string announce(torrent &tor, user_ptr &u, params_type &params, params_type &headers, std::string &ip);
+		std::string announce(torrent &tor, user_ptr &u, params_type &params, params_type &headers, std::string &ip, std::string &passkey);
 		std::string scrape(const std::list<std::string> &infohashes, params_type &headers);
 		std::string update(params_type &params);
 
