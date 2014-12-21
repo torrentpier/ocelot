@@ -25,6 +25,7 @@
 #include "response.h"
 #include "report.h"
 #include "user.h"
+#include "md5.cpp"
 
 //---------- Worker - does stuff with input
 worker::worker(torrent_list &torrents, user_list &users, std::vector<std::string> &_whitelist, config * conf_obj, mysql * db_obj) : torrents_list(torrents), users_list(users), whitelist(_whitelist), conf(conf_obj), db(db_obj)
@@ -51,7 +52,31 @@ std::string worker::work(std::string &input, std::string &ip) {
 		return error("GET string too short");
 	}
 
-	size_t pos = 5; // skip 'GET /'
+    size_t e = input.find('?');
+    if (e == std::string::npos)e = input.size();
+    std::string passkey;
+    //TODO: refactor this legacy code
+    size_t a = 4;
+    if (a < e && input[a] == '/')
+    {
+        do {a++;} while (a < e && input[a] == '/');
+        if (a + 1 < e && input[a + 1] == '/')
+            a += 2;
+        if (a + 2 < e && input[a + 2] == '/')
+            a += 3;
+        if (a + 10 < e && input[a + 10] == '/')
+        {
+            passkey = input.substr(a, 10);
+        }
+        if (a + 32 < e && input[a + 32] == '/')
+        {
+            passkey = input.substr(a, 32);
+        }
+    }
+
+    size_t pos = 5;
+/*
+    size_t pos = 5; // skip 'GET /'
 
 	// Get the passkey
 	std::string passkey;
@@ -65,6 +90,8 @@ std::string worker::work(std::string &input, std::string &ip) {
 	}
 
 	pos = 16;
+*/
+    pos = passkey.length() + 6;
 
 	// Get the action
 	enum action_t {
@@ -185,13 +212,25 @@ std::string worker::work(std::string &input, std::string &ip) {
 		}
 	}
 
-	// Either a scrape or an announce
-
-	user_list::iterator u = users_list.find(passkey);
-	if (u == users_list.end()) {
-		return error("Passkey not found");
-	}
-
+    user_list::iterator u;
+    //-----------XBT hack
+    if(passkey.length() == 32)
+    {
+        int user_id = atoi(hex_decode(passkey.substr(0, 8)).c_str());
+        u=users_list.begin();
+        while(u->second->get_id()!=user_id && u != users_list.end()){++u;}
+        if (u == users_list.end()) {
+            return error("Passkey not found");
+        }
+    }
+    else
+    {
+        u = users_list.find(passkey);
+        // Either a scrape or an announce
+        if (u == users_list.end()) {
+            return error("Passkey not found");
+        }
+    }
 	if (action == ANNOUNCE) {
 		std::unique_lock<std::mutex> tl_lock(db->torrent_list_mutex);
 		// Let's translate the infohash into something nice
@@ -211,13 +250,13 @@ std::string worker::work(std::string &input, std::string &ip) {
 				return error("Unregistered torrent");
 			}
 		}
-		return announce(tor->second, u->second, params, headers, ip);
+		return announce(tor->second, u->second, params, headers, ip, passkey);
 	} else {
 		return scrape(infohashes, headers);
 	}
 }
 
-std::string worker::announce(torrent &tor, user_ptr &u, params_type &params, params_type &headers, std::string &ip) {
+std::string worker::announce(torrent &tor, user_ptr &u, params_type &params, params_type &headers, std::string &ip, std::string &passkey) {
 	cur_time = time(NULL);
 
 	if (params["compact"] != "1") {
@@ -446,8 +485,9 @@ std::string worker::announce(torrent &tor, user_ptr &u, params_type &params, par
 	p->last_announced = cur_time;
 	p->visible = peer_is_visible(u, p);
 	bool seeder = left == 0;
-	boost::hash<std::string> string_hash;
-	std::size_t peer_hash = string_hash(peer_id+info_hash_decoded+inttostr(port)+ip);
+	//boost::hash<std::string> string_hash;
+	//std::size_t peer_hash = string_hash(peer_id+info_hash_decoded+inttostr(port)+ip);
+    std::string peer_hash = md5(info_hash_decoded+passkey+inttostr(port)+ip);
 	// Add peer data to the database
 	std::stringstream record;
 	std::string record_ip;
@@ -457,13 +497,13 @@ std::string worker::announce(torrent &tor, user_ptr &u, params_type &params, par
 		record_ip = ip;
 	}
 	if (peer_changed) {
-		record << '(' << userid << ',' << tor.id << ','  << uploaded << ',' << downloaded << ',' << upspeed << ',' << downspeed << ',' << left << ',' << seeder << ',' << port << ',' << peer_hash << ',';
+		record << '(' << userid << ',' << tor.id << ','  << uploaded << ',' << downloaded << ',' << upspeed << ',' << downspeed << ',' << left << ',' << seeder << ',' << port << ',';
 		std::string record_str = record.str();
-		db->record_peer(record_str, record_ip, peer_id, headers["user-agent"]);
+		db->record_peer(record_str, record_ip, peer_id, headers["user-agent"], peer_hash);
 	} else {
-		record << '(' << tor.id << ',' << peer_hash << ',' << userid << ',' << port << ',';
+		record << '(' << tor.id << ',' << userid << ',' << port << ',';
 		std::string record_str = record.str();
-		db->record_peer(record_str, record_ip, peer_id);
+		db->record_peer(record_str, record_ip, peer_id, peer_hash);
 	}
 
 	// Select peers!

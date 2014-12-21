@@ -102,7 +102,7 @@ PROGRAMS = $(bin_PROGRAMS)
 am_ocelot_OBJECTS = db.$(OBJEXT) events.$(OBJEXT) \
 	misc_functions.$(OBJEXT) ocelot.$(OBJEXT) report.$(OBJEXT) \
 	response.$(OBJEXT) schedule.$(OBJEXT) \
-	user.$(OBJEXT) worker.$(OBJEXT)
+	user.$(OBJEXT) worker.$(OBJEXT) md5.$(OBJEXT)
 nodist_ocelot_OBJECTS = config.$(OBJEXT)
 ocelot_OBJECTS = $(am_ocelot_OBJECTS) $(nodist_ocelot_OBJECTS)
 am__DEPENDENCIES_1 =
@@ -304,7 +304,7 @@ top_srcdir = @top_srcdir@
 ACLOCAL_AMFLAGS = -I m4
 ocelot_SOURCES = config.h db.cpp db.h events.cpp events.h misc_functions.cpp misc_functions.h\
 	ocelot.cpp ocelot.h report.cpp report.h response.cpp response.h \
-	schedule.cpp schedule.h user.cpp user.h worker.cpp worker.h
+	schedule.cpp schedule.h user.cpp user.h worker.cpp worker.h md5.cpp md5.h
 
 nodist_ocelot_SOURCES = config.cpp
 AM_CPPFLAGS = -std=c++11 -march=native -O2 -fvisibility=hidden -fvisibility-inlines-hidden -fomit-frame-pointer -fno-ident -pthread -Wall -Wfatal-errors -Wl,O1 -Wl,--as-needed $(BOOST_CPPFLAGS) -I$(MYSQLPP_INC_DIR) -I$(EV_INC_DIR) -I$(MYSQL_C_INC_DIR)
@@ -405,6 +405,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/config.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/db.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/events.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/md5.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/misc_functions.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ocelot.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/report.Po@am__quote@
