@@ -497,13 +497,13 @@ std::string worker::announce(torrent &tor, user_ptr &u, params_type &params, par
 		record_ip = ip;
 	}
 	if (peer_changed) {
-		record << '(' << userid << ',' << tor.id << ','  << uploaded << ',' << downloaded << ',' << upspeed << ',' << downspeed << ',' << left << ',' << seeder << ',' << port << ',' << peer_hash << ',';
+		record << '(' << userid << ',' << tor.id << ','  << uploaded << ',' << downloaded << ',' << upspeed << ',' << downspeed << ',' << left << ',' << seeder << ',' << port << ',';
 		std::string record_str = record.str();
-		db->record_peer(record_str, record_ip, peer_id, headers["user-agent"]);
+		db->record_peer(record_str, record_ip, peer_id, headers["user-agent"], peer_hash);
 	} else {
-		record << '(' << tor.id << ',' << peer_hash << ',' << userid << ',' << port << ',';
+		record << '(' << tor.id << ',' << userid << ',' << port << ',';
 		std::string record_str = record.str();
-		db->record_peer(record_str, record_ip, peer_id);
+		db->record_peer(record_str, record_ip, peer_id, peer_hash);
 	}
 
 	// Select peers!

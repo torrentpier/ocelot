@@ -116,21 +116,21 @@ void mysql::record_torrent(std::string &record) {
 	update_torrent_buffer += record;
 }
 
-void mysql::record_peer(std::string &record, std::string &ip, std::string &peer_id, std::string &useragent) {
+void mysql::record_peer(std::string &record, std::string &ip, std::string &peer_id, std::string &useragent, std::string &hash) {
 	if (update_heavy_peer_buffer != "") {
 		update_heavy_peer_buffer += ",";
 	}
 	mysqlpp::Query q = conn.query();
-	q << record << mysqlpp::quote << ip << ',' << mysqlpp::quote << peer_id << ',' << mysqlpp::quote << useragent << ","  << time(NULL)  << ')';
+	q << record << mysqlpp::quote << hash << ',' << mysqlpp::quote << ip << ',' << mysqlpp::quote << peer_id << ',' << mysqlpp::quote << useragent << ","  << time(NULL)  << ')';
 
 	update_heavy_peer_buffer += q.str();
 }
-void mysql::record_peer(std::string &record, std::string &ip, std::string &peer_id) {
+void mysql::record_peer(std::string &record, std::string &ip, std::string &peer_id, std::string &hash) {
 	if (update_light_peer_buffer != "") {
 		update_light_peer_buffer += ",";
 	}
 	mysqlpp::Query q = conn.query();
-	q << record << mysqlpp::quote << peer_id << ',' << mysqlpp::quote << ip << ',' << time(NULL) << ')';
+	q << record << mysqlpp::quote << hash << ','  << mysqlpp::quote << peer_id << ',' << mysqlpp::quote << ip << ',' << time(NULL) << ')';
 
 	update_light_peer_buffer += q.str();
 }
@@ -233,14 +233,11 @@ void mysql::flush_peers() {
 	if (update_light_peer_buffer == "" && update_heavy_peer_buffer == "") {
 		return;
 	}
-//Seems sql_log_bin = 0 is default value, so no need to use Super privileges
-/*
 	if (qsize == 0) {
 		sql = "SET session sql_log_bin = 0";
 		peer_queue.push(sql);
 		sql.clear();
 	}
-*/
 	if (update_heavy_peer_buffer != "") {
 		// Because xfu inserts are slow and ram is not infinite we need to
 		// limit this queue's size
@@ -264,7 +261,7 @@ void mysql::flush_peers() {
 		if (qsize >= 1000) {
 			peer_queue.pop();
 		}
-		sql = "INSERT INTO bb_bt_tracker (topic_id,peer_hash,user_id,port,peer_id,ip,update_time) VALUES " +
+		sql = "INSERT INTO bb_bt_tracker (topic_id,user_id,port,peer_hash,peer_id,ip,update_time) VALUES " +
 					update_light_peer_buffer +
 					" ON DUPLICATE KEY UPDATE speed_up=0, speed_down=0";
 		peer_queue.push(sql);
