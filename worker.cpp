@@ -496,12 +496,18 @@ std::string worker::announce(torrent &tor, user_ptr &u, params_type &params, par
 	} else {
 		record_ip = ip;
 	}
+	int tor_type=0;
+	if (tor.free_torrent == NEUTRAL) {
+		tor_type = 2;
+	} else if (tor.free_torrent == FREE) {
+		tor_type = 1;
+	}
 	if (peer_changed) {
-		record << '(' << userid << ',' << tor.id << ','  << uploaded << ',' << downloaded << ',' << upspeed << ',' << downspeed << ',' << left << ',' << seeder << ',' << port << ',';
+		record << '(' << userid << ',' << tor.id << ',' << tor_type << ',' << uploaded << ',' << downloaded << ',' << upspeed << ',' << downspeed << ',' << left << ',' << seeder << ',' << port << ',';
 		std::string record_str = record.str();
 		db->record_peer(record_str, record_ip, peer_id, headers["user-agent"], peer_hash);
 	} else {
-		record << '(' << tor.id << ',' << userid << ',' << port << ',';
+		record << '(' << tor.id << ',' << tor_type << ',' << userid << ',' << port << ',';
 		std::string record_str = record.str();
 		db->record_peer(record_str, record_ip, peer_id, peer_hash);
 	}

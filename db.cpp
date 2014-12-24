@@ -246,7 +246,7 @@ void mysql::flush_peers() {
 		if (qsize >= 1000) {
 			peer_queue.pop();
 		}
-		sql = "INSERT INTO bb_bt_tracker (user_id,topic_id,uploaded,downloaded,speed_up,speed_down,remain," +
+		sql = "INSERT INTO bb_bt_tracker (user_id,topic_id,tor_type,uploaded,downloaded,speed_up,speed_down,remain," +
 			std::string("seeder,port,peer_hash,ip,peer_id,client,update_time) VALUES ") + update_heavy_peer_buffer +
 					" ON DUPLICATE KEY UPDATE uploaded=VALUES(uploaded), up_add=VALUES(uploaded)," +
 					"downloaded=VALUES(downloaded), speed_up=VALUES(speed_up), down_add=VALUES(downloaded), " +
@@ -261,7 +261,7 @@ void mysql::flush_peers() {
 		if (qsize >= 1000) {
 			peer_queue.pop();
 		}
-		sql = "INSERT INTO bb_bt_tracker (topic_id,user_id,port,peer_hash,peer_id,ip,update_time) VALUES " +
+		sql = "INSERT INTO bb_bt_tracker (topic_id,tor_type,user_id,port,peer_hash,peer_id,ip,update_time) VALUES " +
 					update_light_peer_buffer +
 					" ON DUPLICATE KEY UPDATE speed_up=0, speed_down=0";
 		peer_queue.push(sql);
