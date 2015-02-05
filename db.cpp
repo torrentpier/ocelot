@@ -167,7 +167,7 @@ void mysql::flush_users() {
 	}
 	sql = "INSERT INTO bb_bt_users (user_id, up_today, down_today, up_bonus_today, up_release_today) VALUES " + update_user_buffer +
 		" ON DUPLICATE KEY UPDATE up_today = up_today + VALUES(up_today), down_today = down_today + VALUES(down_today), up_bonus_today=VALUES(up_bonus_today), "
-               +"up_release_today=VALUES(up_release_today), u_down_total = u_down_total + VALUES(down_today), u_up_total=u_up_total+VALUES(up_today), u_up_bonus = VALUES(up_bonus_today), u_up_release=VALUES(up_release_today)";
+               +"up_release_today=VALUES(up_release_today), u_down_total = u_down_total + VALUES(down_today), u_up_total=u_up_total+VALUES(up_today), u_up_bonus = u_up_bonus + VALUES(up_bonus_today), u_up_release= u_up_release + VALUES(up_release_today)";
 	user_queue.push(sql);
 	update_user_buffer.clear();
 	if (u_active == false) {
