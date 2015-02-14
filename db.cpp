@@ -137,7 +137,7 @@ void mysql::load_torrents(torrent_list &torrents) {
 		return;
 	}
 	std::cout << "Loaded " << torrents.size() << " torrents" << std::endl;
-	//load_tokens(torrents);
+	load_tokens(torrents);
 }
 
 void mysql::load_users(user_list &users) {
