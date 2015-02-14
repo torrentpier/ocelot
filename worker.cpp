@@ -67,7 +67,7 @@ std::string worker::work(const std::string &input, std::string &ip, client_opts_
 
 	//---------- Parse request - ugly but fast. Using substr exploded.
 	if (input_length < 38) { // Way too short to be anything useful
-		return error("GET string too short");
+		return error("GET string too short", client_opts);
 	}
 
     size_t e = input.find('?');
@@ -458,7 +458,7 @@ std::string worker::announce(const std::string &input, torrent &tor, user_ptr &u
 				int bonusrate=2;//TODO: insert read from config here
 				bonus = uploaded_change * bonusrate / 100;
 				std::stringstream record;
-				if(tor.poster_id==(int)userid)
+				if(tor.poster_id==userid)
 				{record << '(' << userid << ',' << uploaded_change << ',' << downloaded_change << ',' << bonus << ',' << uploaded_change << ')';}
 				else{record << '(' << userid << ',' << uploaded_change << ',' << downloaded_change << ',' << bonus << ',' << 0 << ')';}
 				std::string record_str = record.str();
@@ -524,7 +524,8 @@ std::string worker::announce(const std::string &input, torrent &tor, user_ptr &u
 	// Add peer data to the database
 	std::stringstream record;
 	int tor_type=0;
-	std::string peer_hash = md5(info_hash_decoded+passkey+inttostr(port)+ip);
+	
+	std::string peer_hash = md5(hex_decode(params["info_hash"])+peer_id+inttostr(port)+ip);
 	if (tor.free_torrent == NEUTRAL) {
 		tor_type = 2;
 	} else if (tor.free_torrent == FREE) {
@@ -710,7 +711,7 @@ std::string worker::announce(const std::string &input, torrent &tor, user_ptr &u
 		tor.last_flushed = cur_time;
 
 		std::stringstream record;
-		record << '(' << tor.id << ',' << tor.seeders.size() << ',' << tor.leechers.size() << ',' << snatched << ',' << tor.balance << ')';
+		record << '(' << tor.id << ',' << tor.seeders.size() << ',' << tor.leechers.size() << ',' << snatched << ')';
 		std::string record_str = record.str();
 		db->record_torrent(record_str);
 	}
@@ -1070,7 +1071,7 @@ void worker::reap_peers() {
 		}
 		if (reaped_this && t->second.seeders.empty() && t->second.leechers.empty()) {
 			std::stringstream record;
-			record << '(' << t->second.id << ",0,0,0," << t->second.balance << ')';
+			record << '(' << t->second.id << ",0,0,0," << ')';
 			std::string record_str = record.str();
 			db->record_torrent(record_str);
 			cleared_torrents++;

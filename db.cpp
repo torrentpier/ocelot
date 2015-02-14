@@ -137,7 +137,7 @@ void mysql::load_torrents(torrent_list &torrents) {
 		return;
 	}
 	std::cout << "Loaded " << torrents.size() << " torrents" << std::endl;
-	load_tokens(torrents);
+	//load_tokens(torrents);
 }
 
 void mysql::load_users(user_list &users) {
@@ -157,7 +157,7 @@ void mysql::load_users(user_list &users) {
 			}
 		}
 		for (size_t i = 0; i < num_rows; i++) {
-			std::string passkey(res[i][2]);
+			std::string passkey(res[i][1]);
 			//bool protect_ip = res[i][3];
 			bool protect_ip = false;
 			bool can_leech = true;
