@@ -67,7 +67,7 @@ std::string worker::work(const std::string &input, std::string &ip, client_opts_
 
 	//---------- Parse request - ugly but fast. Using substr exploded.
 	if (input_length < 38) { // Way too short to be anything useful
-		return error("GET string too short");
+		return error("GET string too short", client_opts);
 	}
 
     size_t e = input.find('?');
@@ -268,13 +268,13 @@ std::string worker::work(const std::string &input, std::string &ip, client_opts_
 				return error("Unregistered torrent", client_opts);
 			}
 		}
-		return announce(input, tor->second, u, params, headers, ip, client_opts);
+		return announce(input, tor->second, u, params, headers, ip, client_opts, info_hash_decoded);
 	} else {
 		return scrape(infohashes, headers, client_opts);
 	}
 }
 
-std::string worker::announce(const std::string &input, torrent &tor, user_ptr &u, params_type &params, params_type &headers, std::string &ip, client_opts_t &client_opts) {
+std::string worker::announce(const std::string &input, torrent &tor, user_ptr &u, params_type &params, params_type &headers, std::string &ip, client_opts_t &client_opts, std::string info_hash) {
 	cur_time = time(NULL);
 
 	if (params["compact"] != "1") {
@@ -524,7 +524,7 @@ std::string worker::announce(const std::string &input, torrent &tor, user_ptr &u
 	// Add peer data to the database
 	std::stringstream record;
 	int tor_type=0;
-	std::string peer_hash = md5(info_hash_decoded+passkey+inttostr(port)+ip);
+	std::string peer_hash = md5(info_hash+peer_id+inttostr(port)+ip);
 	if (tor.free_torrent == NEUTRAL) {
 		tor_type = 2;
 	} else if (tor.free_torrent == FREE) {
