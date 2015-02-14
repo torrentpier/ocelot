@@ -266,7 +266,7 @@ void mysql::record_peer(const std::string &record, const std::string &ip, const 
 
 	update_heavy_peer_buffer += q.str();
 }
-void mysql::record_peer(const std::string &record, const std::string &peer_id, const std::string &hash) {
+void mysql::record_peer(const std::string &record, const std::string &ip, const std::string &peer_id, const std::string &hash) {
 	if (update_light_peer_buffer != "") {
 		update_light_peer_buffer += ",";
 	}
