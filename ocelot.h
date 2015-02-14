@@ -39,7 +39,7 @@ typedef struct {
 	torid_t id;
 	uint32_t completed;
 	int64_t balance;
-	uint32_t poster_id;
+	userid_t poster_id;
 	freetype free_torrent;
 	time_t last_flushed;
 	peer_list seeders;
