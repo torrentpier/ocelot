@@ -458,7 +458,7 @@ std::string worker::announce(const std::string &input, torrent &tor, user_ptr &u
 				int bonusrate=2;//TODO: insert read from config here
 				bonus = uploaded_change * bonusrate / 100;
 				std::stringstream record;
-				if(tor.poster_id==userid)
+				if(tor.poster_id==(int)userid)
 				{record << '(' << userid << ',' << uploaded_change << ',' << downloaded_change << ',' << bonus << ',' << uploaded_change << ')';}
 				else{record << '(' << userid << ',' << uploaded_change << ',' << downloaded_change << ',' << bonus << ',' << 0 << ')';}
 				std::string record_str = record.str();
