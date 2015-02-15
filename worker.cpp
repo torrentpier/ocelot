@@ -524,7 +524,7 @@ std::string worker::announce(const std::string &input, torrent &tor, user_ptr &u
 	// Add peer data to the database
 	std::stringstream record;
 	int tor_type=0;
-	
+	bool seeder = (left == 0);
 	std::string peer_hash = md5(hex_decode(params["info_hash"])+peer_id+inttostr(port)+ip);
 	if (tor.free_torrent == NEUTRAL) {
 		tor_type = 2;
@@ -532,7 +532,7 @@ std::string worker::announce(const std::string &input, torrent &tor, user_ptr &u
 		tor_type = 1;
 	}
 	if (peer_changed) {
-		record << '(' << userid << ',' << tor.id << ',' << tor_type << ',' << uploaded << ',' << downloaded << ',' << upspeed << ',' << downspeed << ',' << left << ',' << completed_torrent << ',' << port << ',';
+		record << '(' << userid << ',' << tor.id << ',' << tor_type << ',' << uploaded << ',' << downloaded << ',' << upspeed << ',' << downspeed << ',' << left << ',' << seeder << ',' << port << ',';
 		std::string record_str = record.str();
 		db->record_peer(record_str, ip, peer_id, headers["user-agent"], peer_hash);
 	} else {
@@ -1071,7 +1071,7 @@ void worker::reap_peers() {
 		}
 		if (reaped_this && t->second.seeders.empty() && t->second.leechers.empty()) {
 			std::stringstream record;
-			record << '(' << t->second.id << ",0,0,0," << ')';
+			record << '(' << t->second.id << ",0,0,0" << ')';
 			std::string record_str = record.str();
 			db->record_torrent(record_str);
 			cleared_torrents++;
