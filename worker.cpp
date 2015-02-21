@@ -536,7 +536,7 @@ std::string worker::announce(const std::string &input, torrent &tor, user_ptr &u
 		std::string record_str = record.str();
 		db->record_peer(record_str, ip, peer_id, headers["user-agent"], peer_hash);
 	} else {
-		record << '(' << tor.id << ',' << tor_type << ',' << userid << ',' << port << ',' << completed_torrent << ',';
+		record << '(' << tor.id << ',' << tor_type << ',' << userid << ',' << port << ',' << seeder << ',';
 		std::string record_str = record.str();
 		db->record_peer(record_str, ip, peer_id, peer_hash);
 	}
