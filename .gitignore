@@ -1,3 +1,4 @@
 *.tar.*
-*.idea.*
 .idea/
+# Ignore private config
+ocelot.conf
