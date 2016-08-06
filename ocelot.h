@@ -10,7 +10,7 @@
 #include <atomic>
 
 typedef uint32_t torid_t;
-typedef uint32_t userid_t;
+typedef int32_t userid_t;
 
 class user;
 typedef std::shared_ptr<user> user_ptr;
