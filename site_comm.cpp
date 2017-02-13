@@ -65,7 +65,7 @@ void site_comm::flush_tokens()
 	}
 	token_queue.push(expire_token_buffer);
 	expire_token_buffer.clear();
-	if (t_active == false) {
+	if (!t_active) {
 		std::thread thread(&site_comm::do_flush_tokens, this);
 		thread.detach();
 	}
