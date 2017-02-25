@@ -316,7 +316,7 @@ void mysql::flush_users() {
                +"up_release_today=VALUES(up_release_today), u_down_total = u_down_total + VALUES(down_today), u_up_total=u_up_total+VALUES(up_today), u_up_bonus = u_up_bonus + VALUES(up_bonus_today), u_up_release= 	u_up_release+VALUES(up_release_today)";
 	user_queue.push(sql);
 	update_user_buffer.clear();
-	if (u_active == false) {
+	if (!u_active) {
 		std::thread thread(&mysql::do_flush_users, this);
 		thread.detach();
 	}
@@ -345,7 +345,7 @@ void mysql::flush_torrents() {
 	sql.clear();
 	sql = "DELETE FROM bb_bt_torrents WHERE info_hash = ''";
 	torrent_queue.push(sql);
-	if (t_active == false) {
+	if (!t_active) {
 		std::thread thread(&mysql::do_flush_torrents, this);
 		thread.detach();
 	}
@@ -368,7 +368,7 @@ void mysql::flush_snatches() {
 	sql = "INSERT INTO xbt_snatched (uid, fid, tstamp, IP) VALUES " + update_snatch_buffer;
 	snatch_queue.push(sql);
 	update_snatch_buffer.clear();
-	if (s_active == false) {
+	if (!s_active) {
 		std::thread thread(&mysql::do_flush_snatches, this);
 		thread.detach();
 	}
@@ -423,7 +423,7 @@ void mysql::flush_peers() {
 		sql.clear();
 	}
 
-	if (p_active == false) {
+	if (!p_active) {
 		std::thread thread(&mysql::do_flush_peers, this);
 		thread.detach();
 	}
@@ -447,7 +447,7 @@ void mysql::flush_tokens() {
 		" ON DUPLICATE KEY UPDATE Downloaded = Downloaded + VALUES(Downloaded)";
 	token_queue.push(sql);
 	update_token_buffer.clear();
-	if (tok_active == false) {
+	if (!tok_active) {
 		std::thread thread(&mysql::do_flush_tokens, this);
 		thread.detach();
 	}
