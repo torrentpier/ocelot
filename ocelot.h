@@ -46,7 +46,6 @@ typedef struct {
 	peer_list leechers;
 	std::string last_selected_seeder;
 	std::set<userid_t> tokened_users;
-	
 } torrent;
 
 enum {

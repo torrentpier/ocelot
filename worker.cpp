@@ -453,7 +453,6 @@ std::string worker::announce(const std::string &input, torrent &tor, user_ptr &u
 				downloaded_change = 0;
 			}
 
-
 			if (uploaded_change || downloaded_change) {
 				int bonusrate=2;//TODO: insert read from config here
 				bonus = uploaded_change * bonusrate / 100;
@@ -540,7 +539,6 @@ std::string worker::announce(const std::string &input, torrent &tor, user_ptr &u
 		std::string record_str = record.str();
 		db->record_peer(record_str, ip, peer_id, peer_hash);
 	}
-		
 
 	// Select peers!
 	uint32_t numwant;
