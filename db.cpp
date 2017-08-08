@@ -106,6 +106,7 @@ void mysql::load_torrents(torrent_list &torrents) {
 				tor.poster_id = res[i][4];
 				tor.last_selected_seeder = "";
 			} else {
+				//tor.tokened_users.clear();
 				cur_keys.erase(info_hash);
 			}
 			if (free_torrent == 1) {
