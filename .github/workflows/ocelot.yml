@@ -27,7 +27,7 @@ jobs:
         version: 1.0
 
     - name: Configure
-      run: |
+      run: >
        ./autogen.sh
        ./configure
        --with-boost-libdir=/usr/lib/x86_64-linux-gnu
