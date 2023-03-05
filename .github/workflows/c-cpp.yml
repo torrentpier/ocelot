@@ -21,11 +21,12 @@ jobs:
     - name: autoreconf
       run: autoreconf
     - name: configure
-      run: ./configure \
-	          --with-boost-libdir=/usr/lib/x86_64-linux-gnu \
-	          --with-ev-lib=/usr/lib/x86_64-linux-gnu \
-	          --with-mysql-lib=/usr/lib/x86_64-linux-gnu \
-	          --with-mysqlpp-lib=/usr/lib/x86_64-linux-gnu
+      run: >
+       ./configure
+       --with-boost-libdir=/usr/lib/x86_64-linux-gnu
+       --with-ev-lib=/usr/lib/x86_64-linux-gnu
+       --with-mysql-lib=/usr/lib/x86_64-linux-gnu
+       --with-mysqlpp-lib=/usr/lib/x86_64-linux-gnu
     - name: make
       run: make
     - name: make check
