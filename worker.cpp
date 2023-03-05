@@ -1,9 +1,12 @@
 #include <iostream>
+#include <string>
 #include <map>
 #include <sstream>
 #include <list>
 #include <vector>
 #include <set>
+#include <algorithm>
+#include <mutex>
 #include <thread>
 
 #include "ocelot.h"
