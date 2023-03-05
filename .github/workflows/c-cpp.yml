@@ -13,12 +13,20 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - uses: awalsh128/cache-apt-pkgs-action@latest
+    - name: install prerequisites
+      uses: awalsh128/cache-apt-pkgs-action@latest
       with:
-        packages: libboost-all-dev libboost-dev libboost-iostreams-dev libboost-system-dev libev-dev libmysql++-dev libtcmalloc-minimal4 
+        packages: libev-dev libmysql++-dev libtcmalloc-minimal4 
         version: 1.0
+    - name: install boost
+      uses: MarkusJx/install-boost@v1.0.1
+      id: install-boost
+      with:
+        boost_version: 1.73.0
+        platform_version: 22.04
+        boost_install_dir: /home/runner/boost-lib
     - name: configure
-      run: ./configure
+      run: ./configure  --with-boost-libdir=${{ steps.install-boost.outputs.BOOST_ROOT }}
     - name: make
       run: make
     - name: make check
