@@ -1,6 +1,7 @@
 #include "config.h"
 
 config::config() {
+    // Internal stuff
 	host = "127.0.0.1";
 	port = 2710;
 	max_connections = 512;
@@ -10,18 +11,23 @@ config::config() {
 	schedule_interval = 3;
 	max_middlemen = 5000;
 
+    // Tracker requests
 	announce_interval = 1800;
-	peers_timeout = 2700; //Announce interval * 1.5
+	peers_timeout = 2700; // announce interval * 1.5
 
+    // Timers
 	reap_peers_interval = 1800;
 	del_reason_lifetime = 604800;
 
 	// MySQL
-	mysql_db = "gazelle";
+	mysql_db = "torrentpier";
 	mysql_host = "127.0.0.1:3306";
 	mysql_username = "***";
 	mysql_password = "***";
-	site_password = "**********"; // MUST BE 10 CHARS
-	// Key to use for /report?get=stats and /report?get=user&key=<passkey> requests
-	report_password = "**********"; // MUST BE 10 CHARS
+
+	// Statistical capture
+	report_password = "**********"; // 10-chars key for /report?get=stats and /report?get=user&key=<passkey>
+
+    // Debugging
+    readonly = false;
 }

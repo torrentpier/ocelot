@@ -31,7 +31,6 @@ class worker {
 		unsigned int peers_timeout;
 		unsigned int numwant_limit;
 		bool keepalive_enabled;
-		std::string site_password;
 		std::string report_password;
 
 		std::mutex del_reasons_lock;

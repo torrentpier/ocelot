@@ -18,9 +18,6 @@ site_comm::site_comm(config * conf) : t_active(false) {
 }
 
 void site_comm::load_config(config * conf) {
-	site_host = conf->get_str("site_host");
-	site_path = conf->get_str("site_path");
-	site_password = conf->get_str("site_password");
 	readonly = conf->get_bool("readonly");
 }
 
@@ -79,7 +76,6 @@ void site_comm::do_flush_tokens()
 			boost::asio::io_service io_service;
 
 			tcp::resolver resolver(io_service);
-			tcp::resolver::query query(site_host, "http");
 			tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
 			tcp::resolver::iterator end;
 
@@ -95,9 +91,9 @@ void site_comm::do_flush_tokens()
 
 			boost::asio::streambuf request;
 			std::ostream request_stream(&request);
-			request_stream << "GET " << site_path << "/tools.php?key=" << site_password
+			request_stream << "GET " << "/tools.php?key="
 				<< "&type=expiretoken&action=ocelot&tokens=" << token_queue.front() << " HTTP/1.0\r\n"
-				<< "Host: " << site_host << "\r\n"
+				<< "Host: " << "\r\n"
 				<< "Accept: */*\r\n"
 				<< "Connection: close\r\n\r\n";
 
@@ -123,7 +119,7 @@ void site_comm::do_flush_tokens()
 				std::lock_guard<std::mutex> lock(expire_queue_lock);
 				token_queue.pop();
 			} else {
-				std::cout << "Response returned with status code " << status_code << " when trying to expire a token!" << std::endl;;
+				std::cout << "Response returned with status code " << status_code << " when trying to expire a token!" << std::endl;
 			}
 		}
 	} catch (std::exception &e) {

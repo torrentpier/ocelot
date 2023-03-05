@@ -1,6 +1,5 @@
 #include <iostream>
 #include <fstream>
-#include <string>
 #include "config.h"
 #include "misc_functions.h"
 
@@ -75,16 +74,13 @@ void config::init() {
 	add("schedule_interval", 3u);
 
 	// MySQL
-	add("mysql_db", "gazelle");
+	add("mysql_db", "torrentpier");
 	add("mysql_host", "localhost");
 	add("mysql_username", "");
 	add("mysql_password", "");
 
-	// Site communication
-	add("site_host", "127.0.0.1");
-	add("site_path", "");
-	add("site_password", "00000000000000000000000000000000");
-	add("report_password", "00000000000000000000000000000000");
+	// Statistical capture
+	add("report_password", "0000000000");
 
 	// Debugging
 	add("readonly", false);
