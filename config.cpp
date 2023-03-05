@@ -1,6 +1,5 @@
 #include <iostream>
 #include <fstream>
-#include <string>
 #include "config.h"
 #include "misc_functions.h"
 
