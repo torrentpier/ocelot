@@ -327,7 +327,7 @@ ocelot_SOURCES = config.cpp config.h db.cpp db.h events.cpp events.h misc_functi
 AM_CXXFLAGS = -std=c++11 -march=native -O2 -fvisibility=hidden -fvisibility-inlines-hidden -fomit-frame-pointer -fno-ident -Wall -Wfatal-errors $(PTHREAD_CFLAGS) $(BOOST_CPPFLAGS)
 ocelot_LDADD = $(PTHREAD_LIBS) $(BOOST_IOSTREAMS_LIB) $(BOOST_SYSTEM_LIB)
 AM_LDFLAGS = -Wl,-O1 -Wl,--as-needed
-EXTRA_DIST = CHANGES LICENSE README.md ocelot.conf.dist
+EXTRA_DIST = LICENSE README.md ocelot.conf.dist
 all: all-am
 
 .SUFFIXES:
