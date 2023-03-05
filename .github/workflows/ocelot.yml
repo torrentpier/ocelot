@@ -1,0 +1,55 @@
+name: Ocelot Build
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: cpp
+        queries: +security-and-quality
+
+    - name: Install dependencies
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: libboost-dev libboost-iostreams-dev libboost-system-dev libev-dev libmysql++-dev libtcmalloc-minimal4 
+        version: 1.0
+
+    - name: Autogen
+      run: ./autogen.sh
+
+    - name: Configure
+      run: >
+       ./configure
+       --with-boost-libdir=/usr/lib/x86_64-linux-gnu
+       --with-ev-lib=/usr/lib/x86_64-linux-gnu
+       --with-mysql-lib=/usr/lib/x86_64-linux-gnu
+       --with-mysqlpp-lib=/usr/lib/x86_64-linux-gnu
+
+    - name: Make
+      run: make
+
+    - name: Make check
+      run: make check
+
+    - name: Perform CodeQL analysis
+      uses: github/codeql-action/analyze@v2
+      with:
+        category: "/language:cpp"
