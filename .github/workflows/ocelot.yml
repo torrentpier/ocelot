@@ -1,4 +1,4 @@
-name: C/C++ CI
+name: Ocelot Build
 
 on:
   push:
@@ -26,9 +26,11 @@ jobs:
         packages: libboost-dev libboost-iostreams-dev libboost-system-dev libev-dev libmysql++-dev libtcmalloc-minimal4 
         version: 1.0
 
+    - name: Autogen
+      run: ./autogen.sh
+
     - name: Configure
       run: >
-       ./autogen.sh
        ./configure
        --with-boost-libdir=/usr/lib/x86_64-linux-gnu
        --with-ev-lib=/usr/lib/x86_64-linux-gnu
