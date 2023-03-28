@@ -1,12 +1,9 @@
 #include <iostream>
-#include <string>
 #include <map>
 #include <sstream>
 #include <list>
 #include <vector>
 #include <set>
-#include <algorithm>
-#include <mutex>
 #include <thread>
 
 #include "ocelot.h"
@@ -33,7 +30,6 @@ void worker::load_config(config * conf) {
 	peers_timeout = conf->get_uint("peers_timeout");
 	numwant_limit = conf->get_uint("numwant_limit");
 	keepalive_enabled = conf->get_uint("keepalive_timeout") != 0;
-	site_password = conf->get_str("site_password");
 	report_password = conf->get_str("report_password");
 }
 
@@ -45,7 +41,6 @@ void worker::reload_lists() {
 	status = PAUSED;
 	db->load_torrents(torrents_list);
 	db->load_users(users_list);
-	//db->load_whitelist(whitelist);
 	status = OPEN;
 }
 
@@ -220,14 +215,6 @@ std::string worker::work(const std::string &input, std::string &ip, client_opts_
 
 	if (action == INVALID) {
 		return error("Invalid action", client_opts);
-	}
-
-	if (action == UPDATE) {
-		if (passkey == site_password) {
-			return update(params, client_opts);
-		} else {
-			return error("Authentication failure", client_opts);
-		}
 	}
 
 	if (action == REPORT) {
